@@ -1,0 +1,46 @@
+const express = require( 'express');
+const expresLayout = require('express-ejs-layouts');
+const methodOverride = require('method-override');
+require('dotenv').config();
+const cookieParser = require('cookie-parser');
+const MongoStore = require('connect-mongo');
+const connectDB = require('./server/config/db');
+const session = require('express-session');
+const {isActiveRoute} = require('./server/helpers/routeHelpers');
+
+const app = express();
+const PORT = 3000 || process.env.PORT;
+
+// connect to database
+connectDB();
+
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+app.use(cookieParser());
+app.use(methodOverride('_method'));
+
+app.use(session({
+  secret: 'menagerie handstand',
+  resave: false,
+  saveUninitialized: true,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI
+  }),
+  // cookie: {maxAge: new Date(Date.now() + (3600000))}
+}));
+
+app.use(express.static('public'));
+
+// templating engine
+app.use(expresLayout);
+app.set('layout', './layouts/main');
+app.set('view engine', 'ejs');
+
+app.locals.isActiveRoute = isActiveRoute;
+
+app.use('/', require('./server/routes/main'));
+app.use('/', require('./server/routes/admin'));
+
+app.listen(PORT, ()=>{
+  console.log(`APP LISTENING ON PORT ${PORT}`)
+})
