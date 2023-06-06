@@ -51,11 +51,7 @@ router.post('/register', async (req, res)=>{
 
     try {
       const user = await User.create({username, password: hashedPassword})
-      res.status(201).json({
-        message: 'User created',
-        user
-      
-      })
+      res.redirect('/admin');
     } catch (error) {
       if(error.code === 11000)
       res.status(409).json({message: 'User already in use'})
